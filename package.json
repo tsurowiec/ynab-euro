@@ -11,6 +11,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@inquirer/checkbox": "^5.1.4",
     "dotenv": "^17.4.2",
     "ynab": "^4.1.0"
   },
