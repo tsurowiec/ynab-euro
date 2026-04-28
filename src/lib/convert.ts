@@ -25,12 +25,8 @@ export async function convertTransactions(
     cache[accountId]
   );
 
-  if (!dryRun) {
-    cache[accountId] = data.server_knowledge;
-    writeFileSync(cacheFile, JSON.stringify(cache, null, 2));
-  }
 
-  const pending = data.transactions.filter((t) => !(t.memo?.includes("TX") ?? false));
+  const pending = data.transactions.filter((t) => !t.deleted && !(t.memo?.includes("TX") ?? false));
 
   if (pending.length === 0) {
     console.log("No unprocessed transactions.");
@@ -47,7 +43,7 @@ export async function convertTransactions(
       const memo = t.memo ? `  ${t.memo}` : "";
       return {
         value: t.id,
-        name: `${t.date}  ${amount} → ${converted}  ${payee}${memo}`,
+        name: `${t.date}  ${amount} ${currency} → ${converted} PLN  ${payee}${memo}`,
         checked: true,
       };
     }),
@@ -77,6 +73,8 @@ export async function convertTransactions(
     console.log("\nDry run complete. No changes posted.");
   } else {
     await api.transactions.updateTransactions(planId, { transactions: updates });
+    cache[accountId] = data.server_knowledge;
+    writeFileSync(cacheFile, JSON.stringify(cache, null, 2));
     console.log(`\nDone. ${updates.length} transaction(s) updated.`);
   }
 }

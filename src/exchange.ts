@@ -1,4 +1,8 @@
 import { readFileSync, existsSync } from "fs";
+import stringWidth from "string-width";
+
+const measureWidth = (s: string) =>
+  stringWidth(s.replace(/\p{Regional_Indicator}{2}/gu, "XX"));
 import select from "@inquirer/select";
 import input from "@inquirer/input";
 import { ExitPromptError } from "@inquirer/core";
@@ -27,22 +31,25 @@ const accounts = await Promise.all(
       api.accounts.getAccountById(planId, accountId),
       api.transactions.getTransactionsByAccount(planId, accountId, undefined, undefined, cache[accountId]),
     ]);
-    const newCount = txData.transactions.filter((t) => !(t.memo?.includes("TX") ?? false)).length;
-    return { name: accountData.account.name, accountId, currency, newCount };
+    const newCount = txData.transactions.filter((t) => !t.deleted && !(t.memo?.includes("TX") ?? false)).length;
+    const name = accountData.account.name.replace(/\s+/g, " ").trim().replace(/💶/g, "🇪🇺");
+    return { name, accountId, currency, newCount };
   })
 );
 
 accounts.sort((a, b) => b.newCount - a.newCount);
 
-const maxNameLen = Math.max(...accounts.map((a) => a.name.length));
+const maxNameLen = Math.max(...accounts.map((a) => measureWidth(a.name)));
+const padName = (s: string) => s + " ".repeat(maxNameLen - measureWidth(s));
 
 try {
   const chosen = await select<typeof accounts[0] | null>({
     message: "Select account to convert:",
+    loop: false,
+    pageSize: 16,
     choices: [
       ...accounts.map((a) => {
-        const name = a.name.padEnd(maxNameLen);
-        return { value: a, name: `${name}  (${a.currency})  [${a.newCount} new]` };
+        return { value: a, name: `${padName(a.name)}  (${a.currency})  [${a.newCount} new]` };
       }),
       { value: null, name: "— exit —" },
     ],

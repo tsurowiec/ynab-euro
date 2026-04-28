@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "exchange": "tsx src/exchange.ts",
+    "exchange:dry": "tsx src/exchange.ts --dry-run"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +17,7 @@
     "@inquirer/number": "^4.0.12",
     "@inquirer/select": "^5.1.4",
     "dotenv": "^17.4.2",
+    "string-width": "^8.2.1",
     "ynab": "^4.1.0"
   },
   "devDependencies": {
