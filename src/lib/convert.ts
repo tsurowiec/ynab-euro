@@ -8,11 +8,14 @@ const cacheFile = `${cacheDir}/server_knowledge.json`;
 const truncate = (s: string, max: number) =>
   s.length > max ? s.slice(0, max - 1) + "…" : s;
 
+type TxData = Awaited<ReturnType<typeof api.transactions.getTransactionsByAccount>>["data"];
+
 export async function convertTransactions(
   accountId: string,
   currency: string,
   rate: number,
-  dryRun = false
+  dryRun = false,
+  prefetched?: TxData
 ) {
   if (!existsSync(cacheDir)) mkdirSync(cacheDir);
 
@@ -20,13 +23,13 @@ export async function convertTransactions(
     ? JSON.parse(readFileSync(cacheFile, "utf8"))
     : {};
 
-  const { data } = await api.transactions.getTransactionsByAccount(
+  const data = prefetched ?? (await api.transactions.getTransactionsByAccount(
     planId,
     accountId,
     undefined,
     undefined,
     cache[accountId]
-  );
+  )).data;
 
   const pending = data.transactions
     .filter((t) => !t.deleted && !(t.memo?.includes("TX") ?? false))

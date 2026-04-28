@@ -1,13 +1,13 @@
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, writeFileSync, existsSync } from "fs";
 import stringWidth from "string-width";
-
-const measureWidth = (s: string) =>
-  stringWidth(s.replace(/\p{Regional_Indicator}{2}/gu, "XX"));
 import select from "@inquirer/select";
 import input from "@inquirer/input";
 import { ExitPromptError } from "@inquirer/core";
 import { api, planId } from "./client.js";
 import { convertTransactions } from "./lib/convert.js";
+
+const measureWidth = (s: string) =>
+  stringWidth(s.replace(/\p{Regional_Indicator}{2}/gu, "XX"));
 
 const raw = process.env.YNAB_ACCOUNTS ?? "";
 if (!raw) {
@@ -21,21 +21,33 @@ const accountConfigs = raw.split(",").map((entry) => {
   return { accountId, currency };
 });
 
-const cache: Record<string, number> = existsSync(".cache/server_knowledge.json")
+const skCache: Record<string, number> = existsSync(".cache/server_knowledge.json")
   ? JSON.parse(readFileSync(".cache/server_knowledge.json", "utf8"))
+  : {};
+
+const namesCacheFile = ".cache/account_names.json";
+const namesCache: Record<string, string> = existsSync(namesCacheFile)
+  ? JSON.parse(readFileSync(namesCacheFile, "utf8"))
   : {};
 
 const accounts = await Promise.all(
   accountConfigs.map(async ({ accountId, currency }) => {
-    const [{ data: accountData }, { data: txData }] = await Promise.all([
-      api.accounts.getAccountById(planId, accountId),
-      api.transactions.getTransactionsByAccount(planId, accountId, undefined, undefined, cache[accountId]),
+    const [name, { data: txData }] = await Promise.all([
+      namesCache[accountId]
+        ? Promise.resolve(namesCache[accountId])
+        : api.accounts.getAccountById(planId, accountId).then(({ data }) => {
+            const n = data.account.name.replace(/\s+/g, " ").trim().replace(/💶/g, "🇪🇺");
+            namesCache[accountId] = n;
+            return n;
+          }),
+      api.transactions.getTransactionsByAccount(planId, accountId, undefined, undefined, skCache[accountId]),
     ]);
     const newCount = txData.transactions.filter((t) => !t.deleted && !(t.memo?.includes("TX") ?? false)).length;
-    const name = accountData.account.name.replace(/\s+/g, " ").trim().replace(/💶/g, "🇪🇺");
-    return { name, accountId, currency, newCount };
+    return { name, accountId, currency, newCount, txData };
   })
 );
+
+writeFileSync(namesCacheFile, JSON.stringify(namesCache, null, 2));
 
 accounts.sort((a, b) => b.newCount - a.newCount);
 
@@ -48,9 +60,10 @@ try {
     loop: false,
     pageSize: 16,
     choices: [
-      ...accounts.map((a) => {
-        return { value: a, name: `${padName(a.name)}  (${a.currency})  [${a.newCount} new]` };
-      }),
+      ...accounts.map((a) => ({
+        value: a,
+        name: `${padName(a.name)}  (${a.currency})  [${a.newCount} new]`,
+      })),
       { value: null, name: "— exit —" },
     ],
   });
@@ -65,7 +78,7 @@ try {
 
   const dryRun = process.argv.includes("--dry-run");
 
-  await convertTransactions(chosen.accountId, chosen.currency, rate, dryRun);
+  await convertTransactions(chosen.accountId, chosen.currency, rate, dryRun, chosen.txData);
 } catch (e) {
   if (e instanceof ExitPromptError) process.exit(0);
   throw e;
