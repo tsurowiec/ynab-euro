@@ -12,6 +12,9 @@
   "type": "module",
   "dependencies": {
     "@inquirer/checkbox": "^5.1.4",
+    "@inquirer/input": "^5.0.12",
+    "@inquirer/number": "^4.0.12",
+    "@inquirer/select": "^5.1.4",
     "dotenv": "^17.4.2",
     "ynab": "^4.1.0"
   },
