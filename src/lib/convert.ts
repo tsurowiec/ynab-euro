@@ -5,6 +5,9 @@ import { api, planId } from "../client.js";
 const cacheDir = ".cache";
 const cacheFile = `${cacheDir}/server_knowledge.json`;
 
+const truncate = (s: string, max: number) =>
+  s.length > max ? s.slice(0, max - 1) + "…" : s;
+
 export async function convertTransactions(
   accountId: string,
   currency: string,
@@ -25,8 +28,9 @@ export async function convertTransactions(
     cache[accountId]
   );
 
-
-  const pending = data.transactions.filter((t) => !t.deleted && !(t.memo?.includes("TX") ?? false));
+  const pending = data.transactions
+    .filter((t) => !t.deleted && !(t.memo?.includes("TX") ?? false))
+    .sort((a, b) => a.date.localeCompare(b.date));
 
   if (pending.length === 0) {
     console.log("No unprocessed transactions.");
@@ -40,7 +44,7 @@ export async function convertTransactions(
       const amount = (t.amount / 1000).toFixed(2).padStart(10);
       const converted = (Math.round(t.amount * rate) / 1000).toFixed(2).padStart(10);
       const payee = (t.payee_name ?? "—").padEnd(30);
-      const memo = t.memo ? `  ${t.memo}` : "";
+      const memo = t.memo ? `  ${truncate(t.memo, 40)}` : "";
       return {
         value: t.id,
         name: `${t.date}  ${amount} ${currency} → ${converted} PLN  ${payee}${memo}`,
@@ -69,12 +73,19 @@ export async function convertTransactions(
     console.log(`[${action}]  ${t.date}  ${before} → ${after}  ${payee}  ${u.memo}`);
   }
 
+  const converted = pending.filter((t) => checkedIds.includes(t.id));
+  if (converted.length > 0) {
+    const totalOrig = converted.reduce((sum, t) => sum + t.amount, 0) / 1000;
+    const totalPln = converted.reduce((sum, t) => sum + Math.round(t.amount * rate), 0) / 1000;
+    console.log(`\nTotal: ${totalOrig.toFixed(2)} ${currency} → ${totalPln.toFixed(2)} PLN`);
+  }
+
   if (dryRun) {
-    console.log("\nDry run complete. No changes posted.");
+    console.log("Dry run complete. No changes posted.");
   } else {
     await api.transactions.updateTransactions(planId, { transactions: updates });
     cache[accountId] = data.server_knowledge;
     writeFileSync(cacheFile, JSON.stringify(cache, null, 2));
-    console.log(`\nDone. ${updates.length} transaction(s) updated.`);
+    console.log(`Done. ${updates.length} transaction(s) updated.`);
   }
 }
