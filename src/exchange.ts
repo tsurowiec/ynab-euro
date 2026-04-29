@@ -1,11 +1,9 @@
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import stringWidth from "string-width";
 import select from "@inquirer/select";
-import input from "@inquirer/input";
 import { ExitPromptError } from "@inquirer/core";
 import { api, planId } from "./client.js";
 import { convertTransactions } from "./lib/convert.js";
-import { fetchRateToPln } from "./lib/rates.js";
 
 const measureWidth = (s: string) =>
   stringWidth(s.replace(/\p{Regional_Indicator}{2}/gu, "XX"));
@@ -71,21 +69,9 @@ try {
 
   if (chosen === null) process.exit(0);
 
-  const fetchedRate = await fetchRateToPln(chosen.currency);
-  if (fetchedRate) {
-    console.log(`NBP rate: 1 ${chosen.currency} = ${fetchedRate} PLN`);
-  }
-
-  const rateRaw = await input({
-    message: `Exchange rate for ${chosen.currency}:`,
-    default: fetchedRate?.toString(),
-    validate: (v) => /^\d+(\.\d{1,4})?$/.test(v.trim()) || "Enter a positive number with up to 4 decimal places",
-  });
-  const rate = parseFloat(rateRaw);
-
   const dryRun = process.argv.includes("--dry-run");
 
-  await convertTransactions(chosen.accountId, chosen.currency, rate, dryRun, chosen.txData);
+  await convertTransactions(chosen.accountId, chosen.currency, dryRun, chosen.txData);
 } catch (e) {
   if (e instanceof ExitPromptError) process.exit(0);
   throw e;
