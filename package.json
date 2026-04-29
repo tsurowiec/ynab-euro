@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "exchange": "tsx src/exchange.ts",
-    "exchange:dry": "tsx src/exchange.ts --dry-run"
+    "exchange:dry": "tsx src/exchange.ts --dry-run",
+    "list-plans": "tsx src/list-plans.ts",
+    "list-accounts": "tsx src/list-accounts.ts"
   },
   "keywords": [],
   "author": "",

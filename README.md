@@ -26,6 +26,39 @@ cp .env.example .env
 | `YNAB_PLAN_ID` | Budget ID, or `last-used` to pick the most recently used budget |
 | `YNAB_ACCOUNTS` | Comma-separated list of `accountId\|CURRENCY` pairs, e.g. `abc123\|EUR,def456\|USD` |
 
+### Finding your budget (plan) ID
+
+Set `YNAB_TOKEN` in `.env`, then run:
+
+```bash
+npm run list-plans
+```
+
+This prints all your budgets with their IDs:
+
+```
+a1b2c3d4-...  My Budget
+```
+
+Copy the ID into `YNAB_PLAN_ID`, or just leave it as `last-used` to auto-select the most recently opened budget.
+
+### Finding account IDs
+
+With `YNAB_TOKEN` and `YNAB_PLAN_ID` set, run:
+
+```bash
+npm run list-accounts
+```
+
+This lists all active accounts with their IDs, names, balances, and types:
+
+```
+e5f6a7b8-...  Revolut EUR                   1234.56   otherAsset
+c9d0e1f2-...  Wise USD                        99.00   otherAsset
+```
+
+Copy the relevant IDs into `YNAB_ACCOUNTS`, paired with their currency codes.
+
 ## Usage
 
 ```bash
