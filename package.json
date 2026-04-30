@@ -7,22 +7,37 @@
     "exchange": "tsx src/exchange.ts",
     "exchange:dry": "tsx src/exchange.ts --dry-run",
     "list-plans": "tsx src/list-plans.ts",
-    "list-accounts": "tsx src/list-accounts.ts"
+    "list-accounts": "tsx src/list-accounts.ts",
+    "serve": "tsx src/server.ts",
+    "build": "vite build",
+    "dev:server": "tsx watch src/server.ts",
+    "dev:web": "vite",
+    "dev": "concurrently -n server,web -c blue,green \"npm run dev:server\" \"npm run dev:web\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@hono/node-server": "^2.0.1",
     "@inquirer/checkbox": "^5.1.4",
     "@inquirer/select": "^5.1.4",
     "dotenv": "^17.4.2",
+    "hono": "^4.12.16",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
     "string-width": "^8.2.1",
     "ynab": "^4.1.0"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.2.0",
+    "concurrently": "^9.2.1",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vite": "^7.3.2",
+    "vite-plugin-pwa": "^1.2.0"
   }
 }

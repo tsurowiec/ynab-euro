@@ -61,13 +61,36 @@ Copy the relevant IDs into `YNAB_ACCOUNTS`, paired with their currency codes.
 
 ## Usage
 
+### CLI (over SSH or locally)
+
 ```bash
-# interactive — prompts for account, rate, and transactions
+# interactive — prompts for account and transactions
 npm run exchange
 
 # dry run — shows what would be updated without posting to YNAB
 npm run exchange:dry
 ```
+
+### Web UI (PWA)
+
+Build the frontend and start the server:
+
+```bash
+npm run build
+npm run serve        # runs on http://localhost:3000
+```
+
+Open `http://<your-server-ip>:3000` in a mobile browser and use **Add to Home Screen** to install it as a PWA. The app works like a native app — no browser chrome, accounts refresh automatically when you return to it.
+
+The YNAB token stays on the server in `.env` and is never sent to the browser.
+
+#### Development
+
+```bash
+npm run dev          # starts server on :3000 and Vite HMR on :5173
+```
+
+Point your browser at `http://localhost:5173` — API calls are proxied to the server automatically.
 
 ## Caching
 
