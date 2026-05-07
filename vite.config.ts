@@ -21,12 +21,10 @@ export default defineConfig({
         display: "standalone",
         start_url: "/ynab-euro/",
         icons: [
-          { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any maskable" },
+          { src: "/ynab-euro/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any maskable" },
         ],
       },
       workbox: {
-        navigateFallback: "/ynab-euro/index.html",
-        navigateFallbackDenylist: [/^\/api\//],
         globPatterns: ["**/*.{js,css,html,svg}"],
       },
     }),
