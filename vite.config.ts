@@ -19,7 +19,7 @@ export default defineConfig({
         theme_color: "#2563eb",
         background_color: "#f8fafc",
         display: "standalone",
-        start_url: "/",
+        start_url: "/ynab-euro/",
         icons: [
           { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any maskable" },
         ],
