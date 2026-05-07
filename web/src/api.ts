@@ -31,11 +31,13 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
   return body as T;
 }
 
+const base = import.meta.env.BASE_URL;
+
 export const fetchAccounts = (): Promise<AccountInfo[]> =>
-  request("/api/accounts");
+  request(`${base}api/accounts`);
 
 export const fetchTransactions = (accountId: string, currency: string): Promise<{ transactions: Transaction[] }> =>
-  request(`/api/transactions/${accountId}?currency=${encodeURIComponent(currency)}`);
+  request(`${base}api/transactions/${accountId}?currency=${encodeURIComponent(currency)}`);
 
 export const convertTransactions = (
   accountId: string,
@@ -43,7 +45,7 @@ export const convertTransactions = (
   selections: Array<{ id: string; convert: boolean }>,
   dryRun = false
 ): Promise<ConvertResult> =>
-  request("/api/convert", {
+  request(`${base}api/convert`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ accountId, currency, selections, dryRun }),
