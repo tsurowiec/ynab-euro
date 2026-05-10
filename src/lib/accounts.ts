@@ -35,7 +35,7 @@ export async function loadAccounts(): Promise<AccountInfo[]> {
         namesCache[accountId]
           ? Promise.resolve(namesCache[accountId])
           : api.accounts.getAccountById(planId, accountId).then(({ data }) => {
-              const n = data.account.name.replace(/\s+/g, " ").trim().replace(/💶/g, "🇪🇺");
+              const n = data.account.name.replace(/\s+/g, " ").trim();
               namesCache[accountId] = n;
               return n;
             }),
