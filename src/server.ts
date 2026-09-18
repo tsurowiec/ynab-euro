@@ -9,6 +9,19 @@ import { api, planId } from "./client.js";
 
 const app = new Hono();
 
+// Simple shared-secret auth: every /api request must carry APP_KEY
+// (as an X-App-Key header or ?key= query param).
+const appKey = process.env.APP_KEY;
+if (!appKey) {
+  console.error("APP_KEY is not set in .env — refusing to start without auth");
+  process.exit(1);
+}
+app.use("/api/*", async (c, next) => {
+  const provided = c.req.header("x-app-key") ?? c.req.query("key");
+  if (provided !== appKey) return c.json({ error: "unauthorized" }, 401);
+  await next();
+});
+
 app.get("/api/accounts", async (c) => {
   try {
     const accounts = await loadAccounts();

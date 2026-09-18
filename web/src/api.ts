@@ -24,8 +24,29 @@ export type ConvertResult = {
   dryRun: boolean;
 };
 
+const KEY_STORAGE = "appKey";
+
+// Key comes from ?key=... on first visit and is remembered so the
+// installed PWA (whose start_url has no query string) keeps working.
+function loadKey(): string | null {
+  const fromUrl = new URLSearchParams(window.location.search).get("key");
+  if (fromUrl) {
+    try { localStorage.setItem(KEY_STORAGE, fromUrl); } catch { /* ignore */ }
+    const clean = window.location.pathname + window.location.hash;
+    window.history.replaceState(null, "", clean);
+    return fromUrl;
+  }
+  try { return localStorage.getItem(KEY_STORAGE); } catch { return null; }
+}
+
+const appKey = loadKey();
+
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, init);
+  const res = await fetch(url, {
+    ...init,
+    headers: { ...(init?.headers ?? {}), ...(appKey ? { "X-App-Key": appKey } : {}) },
+  });
+  if (res.status === 401) throw new Error("Unauthorized — open the app with ?key=<APP_KEY> in the URL");
   const body = await res.json();
   if (!res.ok) throw new Error(body.error ?? res.statusText);
   return body as T;
