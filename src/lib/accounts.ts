@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
 import { api, planId } from "../client.js";
+import { isPending } from "./pending.js";
 
 export type AccountInfo = { accountId: string; name: string; currency: string; newCount: number };
 
@@ -42,7 +43,7 @@ export async function loadAccounts(): Promise<AccountInfo[]> {
         api.transactions.getTransactionsByAccount(planId, accountId, undefined, undefined, skCache[accountId]),
       ]);
       const newCount = txData.transactions.filter(
-        (t) => !t.deleted && !(t.memo?.includes("TX") ?? false)
+        isPending
       ).length;
       return { accountId, name, currency, newCount };
     })

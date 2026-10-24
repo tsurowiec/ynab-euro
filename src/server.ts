@@ -6,6 +6,7 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { loadAccounts } from "./lib/accounts.js";
 import { fetchRateForDate } from "./lib/rates.js";
 import { api, planId } from "./client.js";
+import { isPending } from "./lib/pending.js";
 
 const app = new Hono();
 
@@ -60,7 +61,7 @@ app.get("/api/transactions/:accountId", async (c) => {
     );
 
     const pending = data.transactions
-      .filter((t) => !t.deleted && !(t.memo?.includes("TX") ?? false))
+      .filter(isPending)
       .sort((a, b) => a.date.localeCompare(b.date));
 
     const uniqueDates = [...new Set(pending.map((t) => t.date))];

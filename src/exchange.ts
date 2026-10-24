@@ -3,6 +3,7 @@ import stringWidth from "string-width";
 import select from "@inquirer/select";
 import { ExitPromptError } from "@inquirer/core";
 import { api, planId } from "./client.js";
+import { isPending } from "./lib/pending.js";
 import { convertTransactions } from "./lib/convert.js";
 
 const measureWidth = (s: string) =>
@@ -41,7 +42,7 @@ const accounts = await Promise.all(
           }),
       api.transactions.getTransactionsByAccount(planId, accountId, undefined, undefined, skCache[accountId]),
     ]);
-    const newCount = txData.transactions.filter((t) => !t.deleted && !(t.memo?.includes("TX") ?? false)).length;
+    const newCount = txData.transactions.filter(isPending).length;
     return { name, accountId, currency, newCount, txData };
   })
 );

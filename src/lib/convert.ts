@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 import checkbox from "@inquirer/checkbox";
 import { api, planId } from "../client.js";
+import { isPending } from "./pending.js";
 import { fetchRateForDate } from "./rates.js";
 
 const cacheDir = ".cache";
@@ -32,7 +33,7 @@ export async function convertTransactions(
   )).data;
 
   const pending = data.transactions
-    .filter((t) => !t.deleted && !(t.memo?.includes("TX") ?? false))
+    .filter(isPending)
     .sort((a, b) => a.date.localeCompare(b.date));
 
   if (pending.length === 0) {
